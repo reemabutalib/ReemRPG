@@ -1,0 +1,6 @@
+@ReemRPG_HostAddress = http://localhost:5233
+
+GET {{ReemRPG_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
