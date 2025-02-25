@@ -98,6 +98,8 @@ namespace ReemRPG.Controllers
             return NoContent();
         }
 
+        
+
         private bool QuestExists(int id)
         {
             return _context.Quests.Any(e => e.Id == id);
