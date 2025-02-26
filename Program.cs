@@ -7,6 +7,7 @@ using ReemRPG.Services.Interfaces;
 using ReemRPG.Services;
 using ReemRPG.Repositories.Interfaces;
 using ReemRPG.Repositories;
+using ReemRPG.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationContext>(options =>
@@ -83,6 +84,9 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+// Add Global Error Handling Middleware
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
