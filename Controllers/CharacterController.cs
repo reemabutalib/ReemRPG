@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReemRPG.Models;
 using ReemRPG.Services.Interfaces;
@@ -8,6 +9,7 @@ namespace ReemRPG.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class CharacterController : ControllerBase
     {
         private readonly ICharacterService _characterService;

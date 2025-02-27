@@ -27,6 +27,8 @@ namespace ReemRPG.Models
 
         [JsonIgnore]
         public List<CharacterQuest> CharacterQuests { get; set; } = new List<CharacterQuest>();
+
+        public List<Item> Items { get; set; } = new List<Item>();
     }
 }
 

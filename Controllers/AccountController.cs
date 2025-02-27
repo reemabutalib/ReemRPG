@@ -20,10 +20,10 @@ namespace ReemRPG.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly EmailService _emailService;
+        private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, EmailService emailService, IConfiguration configuration)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailService emailService, IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -48,16 +48,15 @@ namespace ReemRPG.Controllers
                 // Send the verification email
                 var emailSubject = "Email Verification";
                 var emailBody = $"Please verify your email by clicking the following link: {verificationLink}";
-                _emailService.SendEmail(user.Email, emailSubject, emailBody);
-               
+
+                await _emailService.SendEmailAsync(user.Email, emailSubject, emailBody); // ✅ Fixed the call
+
                 return Ok("User registered successfully. An email verification link has been sent.");
             }
 
             return BadRequest(result.Errors);
         }
 
-
-        // Add an action to handle email verification
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail(string userId, string token)
         {
@@ -78,8 +77,6 @@ namespace ReemRPG.Controllers
             return BadRequest("Email verification failed.");
         }
 
-
-
         [HttpPost("login")]
         public async Task<IActionResult> Login(AuthModel model)
         {
@@ -89,7 +86,7 @@ namespace ReemRPG.Controllers
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 var roles = await _userManager.GetRolesAsync(user);
-                var token = GenerateJwtToken(user,roles);
+                var token = GenerateJwtToken(user, roles);
                 return Ok(new { Token = token });
             }
 
@@ -102,6 +99,7 @@ namespace ReemRPG.Controllers
             await _signInManager.SignOutAsync();
             return Ok("Logged out");
         }
+
         private string GenerateJwtToken(IdentityUser user, IList<string> roles)
         {
             var claims = new List<Claim>
@@ -130,7 +128,5 @@ namespace ReemRPG.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
     }
-
 }

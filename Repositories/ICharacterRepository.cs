@@ -1,9 +1,12 @@
 using ReemRPG.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace ReemRPG.Repositories.Interfaces
+public interface ICharacterRepository
 {
-    public interface ICharacterRepository : IRepository<Character>
-    {
-        // Add custom methods specific to Character if needed
-    }
+    Task<IEnumerable<Character>> GetAllCharactersAsync();
+    Task<Character?> GetCharacterByIdAsync(int id);
+    Task AddCharacterAsync(Character character);
+    Task UpdateCharacterAsync(Character character);
+    Task DeleteCharacterAsync(int id);
 }

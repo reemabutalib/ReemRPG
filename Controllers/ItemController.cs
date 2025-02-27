@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReemRPG.Models;
 using ReemRPG.Services.Interfaces;
@@ -50,6 +51,7 @@ namespace ReemRPG.Controllers
 
         // POST: api/Item
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Item>> PostItem(Item item)
         {
             var newItem = await _itemService.CreateItemAsync(item);
@@ -58,6 +60,7 @@ namespace ReemRPG.Controllers
 
         // DELETE: api/Item/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteItem(int id)
         {
             var success = await _itemService.DeleteItemAsync(id);
