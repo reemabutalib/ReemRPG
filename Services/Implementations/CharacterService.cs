@@ -3,6 +3,7 @@ using ReemRPG.Services.Interfaces;
 
 public class CharacterService : ICharacterService
 {
+    // Follows LSP: ICharacterRepository interface is used so that any repository can be used interchangeably 
     private readonly ICharacterRepository _characterRepository;
 
     public CharacterService(ICharacterRepository characterRepository)

@@ -1,0 +1,8 @@
+bin/
+obj/
+.vscode/
+.git/
+Dockerfile
+docker-compose.override.yml
+.env
+node_modules/
