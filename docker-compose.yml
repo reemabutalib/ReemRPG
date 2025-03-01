@@ -1,0 +1,12 @@
+
+services:
+  api:
+    build: .
+    container_name: reemrpg-api
+    ports:
+      - "6000:5000"
+    volumes:
+      - ./Data:/app/Data  # This ensures the database persists
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+    restart: always

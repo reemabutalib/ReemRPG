@@ -28,10 +28,17 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ICharacterService, CharacterService>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
+
+// Register MemoryCache (Required for Rate Limiting)
 builder.Services.AddMemoryCache();
+
+// Configure IP Rate Limiting
 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
 builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>(); 
 
 
 // Add CORS Policy
@@ -64,13 +71,27 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddAuthorization();
+builder.Services.AddControllers();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
     context.Database.EnsureCreated();
+     try
+    {
+        Console.WriteLine("Ensuring database is created...");
+        context.Database.EnsureCreated();
+        Console.WriteLine("Database creation successful!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Database creation failed: {ex.Message}");
+    }
 }
+
 
 if (app.Environment.IsDevelopment())
 {
