@@ -1,30 +1,28 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.5.2.0
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReemRPG", "ReemRPG.csproj", "{3177B708-5EDB-8935-92C1-76BA240F9EF1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReemRPG", "ReemRPG.csproj", "{762CB793-DB8F-441B-8C93-104EE15FCD45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReemRPG.Tests", "ReemRPG.Tests\ReemRPG.Tests.csproj", "{BD8299C4-BBEA-4961-B361-8444F36A6167}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReemRPG.Tests", "ReemRPG.Tests\ReemRPG.Tests.csproj", "{5AF48A8D-4A54-40A3-B021-33F6A50AC41C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3177B708-5EDB-8935-92C1-76BA240F9EF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3177B708-5EDB-8935-92C1-76BA240F9EF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3177B708-5EDB-8935-92C1-76BA240F9EF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3177B708-5EDB-8935-92C1-76BA240F9EF1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BD8299C4-BBEA-4961-B361-8444F36A6167}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BD8299C4-BBEA-4961-B361-8444F36A6167}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BD8299C4-BBEA-4961-B361-8444F36A6167}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BD8299C4-BBEA-4961-B361-8444F36A6167}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {892BE622-6E2D-4FAC-AC09-23765D949FD9}
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{762CB793-DB8F-441B-8C93-104EE15FCD45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{762CB793-DB8F-441B-8C93-104EE15FCD45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{762CB793-DB8F-441B-8C93-104EE15FCD45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{762CB793-DB8F-441B-8C93-104EE15FCD45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AF48A8D-4A54-40A3-B021-33F6A50AC41C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AF48A8D-4A54-40A3-B021-33F6A50AC41C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AF48A8D-4A54-40A3-B021-33F6A50AC41C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AF48A8D-4A54-40A3-B021-33F6A50AC41C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

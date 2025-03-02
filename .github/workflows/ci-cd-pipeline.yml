@@ -22,10 +22,10 @@ jobs:
           dotnet-version: '8.0'
 
       - name: Restore Dependencies
-        run: dotnet restore
+        run: dotnet restore ./ReemRPG.sln
 
       - name: Build Solution
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build ./ReemRPG.sln --no-restore --configuration Release
 
       - name: Run Unit Tests
         run: dotnet test ReemRPG.Tests/ReemRPG.Tests.csproj --no-build --verbosity normal
