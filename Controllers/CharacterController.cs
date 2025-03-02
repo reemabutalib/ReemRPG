@@ -9,7 +9,6 @@ namespace ReemRPG.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
     public class CharacterController : ControllerBase
     {
         private readonly ICharacterService _characterService;
@@ -48,6 +47,7 @@ namespace ReemRPG.Controllers
 
         // POST: api/Character
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Character>> PostCharacter(Character character)
         {
             var createdCharacter = await _characterService.CreateCharacterAsync(character);
@@ -56,6 +56,7 @@ namespace ReemRPG.Controllers
 
         // DELETE: api/Character/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteCharacter(int id)
         {
             var deleted = await _characterService.DeleteCharacterAsync(id);

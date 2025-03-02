@@ -36,10 +36,18 @@ public class CharacterService : ICharacterService
         await _characterRepository.DeleteCharacterAsync(id);
     }
 
-    public Task<Character> CreateCharacterAsync(Character character)
+    public async Task<Character> CreateCharacterAsync(Character character)
+{
+    if (character == null)
     {
-        throw new NotImplementedException();
+        throw new ArgumentNullException(nameof(character));
     }
+
+    _characterRepository.Add(character); // Call Add method
+    await _characterRepository.SaveChangesAsync(); // Ensure this is awaited
+
+    return character; // Return the created character
+}
 
     public Task<Character?> UpdateCharacterAsync(int id, Character character)
     {

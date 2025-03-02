@@ -12,6 +12,7 @@ using AspNetCoreRateLimit;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services BEFORE calling builder.Build()
 builder.Services.AddDbContext<ApplicationContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -38,15 +39,14 @@ builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
 builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
-builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>(); 
-
+builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
 
 // Add CORS Policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigins", builder =>
+    options.AddPolicy("AllowAllOrigins", builder =>
     {
-        builder.WithOrigins("https://yourfrontend.com") // Replace with your actual frontend URL
+        builder.AllowAnyOrigin()
                .AllowAnyMethod()
                .AllowAnyHeader();
     });
@@ -76,11 +76,11 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+// Run database migrations or ensure the database is created
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
-    context.Database.EnsureCreated();
-     try
+    try
     {
         Console.WriteLine("Ensuring database is created...");
         context.Database.EnsureCreated();
@@ -92,16 +92,13 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();
-
-// Use CORS Middleware
-app.UseCors("AllowSpecificOrigins");
+app.UseCors("AllowAllOrigins");
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseIpRateLimiting();
