@@ -45,15 +45,21 @@ namespace ReemRPG.Controllers
             _logger.LogInformation("Attempting to register a new user: {Email}", model.Email);
 
             var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+
+            // creates a new user in database: hashes and salts password, saves user and returns result-
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
                 _logger.LogInformation("User {Email} registered successfully.", model.Email);
 
+                // Generate an email verification token
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+                // Create the verification link
                 var verificationLink = Url.Action("VerifyEmail", "Account", new { userId = user.Id, token = token }, Request.Scheme);
 
+                // Send the verification email
                 var emailSubject = "Email Verification";
                 var emailBody = $"Please verify your email by clicking the following link: {verificationLink}";
 
