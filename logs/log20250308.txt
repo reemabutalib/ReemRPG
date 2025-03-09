@@ -1,0 +1,212 @@
+2025-03-08 20:56:41.257 +00:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-03-08 20:56:41.362 +00:00 [INF] User profile is available. Using '/Users/reemabutalib/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-03-08 20:56:41.381 +00:00 [INF] Initializing UI Database
+2025-03-08 20:56:41.453 +00:00 [INF] Saving healthchecks configuration to database
+2025-03-08 20:56:41.482 +00:00 [INF] Saved 1 entities to in-memory store.
+2025-03-08 20:56:41.661 +00:00 [INF] Now listening on: https://localhost:7193
+2025-03-08 20:56:41.661 +00:00 [INF] Now listening on: http://localhost:5233
+2025-03-08 20:56:41.686 +00:00 [INF] Start processing HTTP request GET https://localhost:5233/health
+2025-03-08 20:56:41.687 +00:00 [INF] Sending HTTP request GET https://localhost:5233/health
+2025-03-08 20:56:41.690 +00:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-03-08 20:56:41.690 +00:00 [INF] Hosting environment: Development
+2025-03-08 20:56:41.690 +00:00 [INF] Content root path: /Users/reemabutalib/ReemRPG
+2025-03-08 20:56:41.711 +00:00 [ERR] GetHealthReport threw an exception when trying to get report from https://localhost:5233/health configured with name API.
+System.Net.Http.HttpRequestException: The SSL connection could not be established, see inner exception.
+ ---> System.Security.Authentication.AuthenticationException: Cannot determine the frame size or a corrupted frame was received.
+   at System.Net.Security.SslStream.GetFrameSize(ReadOnlySpan`1 buffer)
+   at System.Net.Security.SslStream.EnsureFullTlsFrameAsync[TIOAdapter](CancellationToken cancellationToken, Int32 estimatedSize)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.AddHttp11ConnectionAsync(QueueItem queueItem)
+   at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /_/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 142
+2025-03-08 20:56:41.738 +00:00 [INF] Saved 1 entities to in-memory store.
+2025-03-08 20:56:41.768 +00:00 [INF] Saved 2 entities to in-memory store.
+2025-03-08 20:56:56.802 +00:00 [INF] Start processing HTTP request GET https://localhost:5233/health
+2025-03-08 20:56:56.802 +00:00 [INF] Sending HTTP request GET https://localhost:5233/health
+2025-03-08 20:56:56.804 +00:00 [ERR] GetHealthReport threw an exception when trying to get report from https://localhost:5233/health configured with name API.
+System.Net.Http.HttpRequestException: The SSL connection could not be established, see inner exception.
+ ---> System.Security.Authentication.AuthenticationException: Cannot determine the frame size or a corrupted frame was received.
+   at System.Net.Security.SslStream.GetFrameSize(ReadOnlySpan`1 buffer)
+   at System.Net.Security.SslStream.EnsureFullTlsFrameAsync[TIOAdapter](CancellationToken cancellationToken, Int32 estimatedSize)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.AddHttp11ConnectionAsync(QueueItem queueItem)
+   at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /_/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 142
+2025-03-08 20:56:56.810 +00:00 [INF] Notification is sent on same window time.
+2025-03-08 20:56:56.817 +00:00 [INF] Saved 1 entities to in-memory store.
+2025-03-08 20:57:03.206 +00:00 [INF] Request starting HTTP/2 GET https://localhost:7193/ - null null
+2025-03-08 20:57:03.262 +00:00 [INF] HTTP GET / responded 404 in 34.8284 ms
+2025-03-08 20:57:03.265 +00:00 [INF] Request finished HTTP/2 GET https://localhost:7193/ - 404 0 null 60.2267ms
+2025-03-08 20:57:03.266 +00:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:7193/, Response status code: 404
+2025-03-08 20:57:07.402 +00:00 [INF] Request starting HTTP/2 GET https://localhost:7193/weatherforecast - null null
+2025-03-08 20:57:07.407 +00:00 [INF] Executing endpoint 'HTTP: GET /weatherforecast'
+2025-03-08 20:57:07.414 +00:00 [INF] Executed endpoint 'HTTP: GET /weatherforecast'
+2025-03-08 20:57:07.415 +00:00 [INF] HTTP GET /weatherforecast responded 200 in 10.6333 ms
+2025-03-08 20:57:07.415 +00:00 [INF] Request finished HTTP/2 GET https://localhost:7193/weatherforecast - 200 null application/json; charset=utf-8 13.0701ms
+2025-03-08 20:57:11.825 +00:00 [INF] Start processing HTTP request GET https://localhost:5233/health
+2025-03-08 20:57:11.826 +00:00 [INF] Sending HTTP request GET https://localhost:5233/health
+2025-03-08 20:57:11.829 +00:00 [ERR] GetHealthReport threw an exception when trying to get report from https://localhost:5233/health configured with name API.
+System.Net.Http.HttpRequestException: The SSL connection could not be established, see inner exception.
+ ---> System.Security.Authentication.AuthenticationException: Cannot determine the frame size or a corrupted frame was received.
+   at System.Net.Security.SslStream.GetFrameSize(ReadOnlySpan`1 buffer)
+   at System.Net.Security.SslStream.EnsureFullTlsFrameAsync[TIOAdapter](CancellationToken cancellationToken, Int32 estimatedSize)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.AddHttp11ConnectionAsync(QueueItem queueItem)
+   at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /_/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 142
+2025-03-08 20:57:11.831 +00:00 [INF] Notification is sent on same window time.
+2025-03-08 20:57:11.832 +00:00 [INF] Saved 1 entities to in-memory store.
+2025-03-08 20:57:13.281 +00:00 [INF] Request starting HTTP/2 GET https://localhost:7193/api/character - null null
+2025-03-08 20:57:13.288 +00:00 [INF] Executing endpoint 'ReemRPG.Controllers.CharacterController.GetCharacters (ReemRPG)'
+2025-03-08 20:57:13.316 +00:00 [INF] Route matched with {action = "GetCharacters", controller = "Character"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[System.Collections.Generic.IEnumerable`1[ReemRPG.Models.Character]]] GetCharacters() on controller ReemRPG.Controllers.CharacterController (ReemRPG).
+2025-03-08 20:57:13.394 +00:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "c"."CharacterId", "c"."AttackPower", "c"."Class", "c"."Health", "c"."Level", "c"."Name", "i"."Id", "i"."AttackBonus", "i"."CharacterId", "i"."DefenseBonus", "i"."Description", "i"."HealthRestore", "i"."Name", "i"."Type", "i"."Value"
+FROM "Characters" AS "c"
+LEFT JOIN "Items" AS "i" ON "c"."CharacterId" = "i"."CharacterId"
+ORDER BY "c"."CharacterId"
+2025-03-08 20:57:13.402 +00:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[ReemRPG.Models.Character, ReemRPG, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2025-03-08 20:57:13.410 +00:00 [INF] Executed action ReemRPG.Controllers.CharacterController.GetCharacters (ReemRPG) in 91.9464ms
+2025-03-08 20:57:13.410 +00:00 [INF] Executed endpoint 'ReemRPG.Controllers.CharacterController.GetCharacters (ReemRPG)'
+2025-03-08 20:57:13.410 +00:00 [INF] HTTP GET /api/character responded 200 in 124.8659 ms
+2025-03-08 20:57:13.411 +00:00 [INF] Request finished HTTP/2 GET https://localhost:7193/api/character - 200 null application/json; charset=utf-8 130.2143ms
+2025-03-08 20:57:26.835 +00:00 [INF] Start processing HTTP request GET https://localhost:5233/health
+2025-03-08 20:57:26.836 +00:00 [INF] Sending HTTP request GET https://localhost:5233/health
+2025-03-08 20:57:26.842 +00:00 [ERR] GetHealthReport threw an exception when trying to get report from https://localhost:5233/health configured with name API.
+System.Net.Http.HttpRequestException: The SSL connection could not be established, see inner exception.
+ ---> System.Security.Authentication.AuthenticationException: Cannot determine the frame size or a corrupted frame was received.
+   at System.Net.Security.SslStream.GetFrameSize(ReadOnlySpan`1 buffer)
+   at System.Net.Security.SslStream.EnsureFullTlsFrameAsync[TIOAdapter](CancellationToken cancellationToken, Int32 estimatedSize)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.AddHttp11ConnectionAsync(QueueItem queueItem)
+   at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /_/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 142
+2025-03-08 20:57:26.846 +00:00 [INF] Notification is sent on same window time.
+2025-03-08 20:57:26.847 +00:00 [INF] Saved 1 entities to in-memory store.
+2025-03-08 20:57:41.850 +00:00 [INF] Start processing HTTP request GET https://localhost:5233/health
+2025-03-08 20:57:41.851 +00:00 [INF] Sending HTTP request GET https://localhost:5233/health
+2025-03-08 20:57:41.856 +00:00 [ERR] GetHealthReport threw an exception when trying to get report from https://localhost:5233/health configured with name API.
+System.Net.Http.HttpRequestException: The SSL connection could not be established, see inner exception.
+ ---> System.Security.Authentication.AuthenticationException: Cannot determine the frame size or a corrupted frame was received.
+   at System.Net.Security.SslStream.GetFrameSize(ReadOnlySpan`1 buffer)
+   at System.Net.Security.SslStream.EnsureFullTlsFrameAsync[TIOAdapter](CancellationToken cancellationToken, Int32 estimatedSize)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.AddHttp11ConnectionAsync(QueueItem queueItem)
+   at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /_/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 142
+2025-03-08 20:57:41.861 +00:00 [INF] Notification is sent on same window time.
+2025-03-08 20:57:41.862 +00:00 [INF] Saved 1 entities to in-memory store.
+2025-03-08 20:57:56.551 +00:00 [INF] Request starting HTTP/2 GET https://localhost:7193/health - null null
+2025-03-08 20:57:56.612 +00:00 [INF] HTTP GET /health responded 200 in 60.3513 ms
+2025-03-08 20:57:56.613 +00:00 [INF] Request finished HTTP/2 GET https://localhost:7193/health - 200 null application/json 61.3954ms
+2025-03-08 20:57:56.867 +00:00 [INF] Start processing HTTP request GET https://localhost:5233/health
+2025-03-08 20:57:56.867 +00:00 [INF] Sending HTTP request GET https://localhost:5233/health
+2025-03-08 20:57:56.871 +00:00 [ERR] GetHealthReport threw an exception when trying to get report from https://localhost:5233/health configured with name API.
+System.Net.Http.HttpRequestException: The SSL connection could not be established, see inner exception.
+ ---> System.Security.Authentication.AuthenticationException: Cannot determine the frame size or a corrupted frame was received.
+   at System.Net.Security.SslStream.GetFrameSize(ReadOnlySpan`1 buffer)
+   at System.Net.Security.SslStream.EnsureFullTlsFrameAsync[TIOAdapter](CancellationToken cancellationToken, Int32 estimatedSize)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.AddHttp11ConnectionAsync(QueueItem queueItem)
+   at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /_/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 142
+2025-03-08 20:57:56.875 +00:00 [INF] Notification is sent on same window time.
+2025-03-08 20:57:56.876 +00:00 [INF] Saved 1 entities to in-memory store.
+2025-03-08 20:58:11.881 +00:00 [INF] Start processing HTTP request GET https://localhost:5233/health
+2025-03-08 20:58:11.882 +00:00 [INF] Sending HTTP request GET https://localhost:5233/health
+2025-03-08 20:58:11.887 +00:00 [ERR] GetHealthReport threw an exception when trying to get report from https://localhost:5233/health configured with name API.
+System.Net.Http.HttpRequestException: The SSL connection could not be established, see inner exception.
+ ---> System.Security.Authentication.AuthenticationException: Cannot determine the frame size or a corrupted frame was received.
+   at System.Net.Security.SslStream.GetFrameSize(ReadOnlySpan`1 buffer)
+   at System.Net.Security.SslStream.EnsureFullTlsFrameAsync[TIOAdapter](CancellationToken cancellationToken, Int32 estimatedSize)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.AddHttp11ConnectionAsync(QueueItem queueItem)
+   at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /_/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 142
+2025-03-08 20:58:11.891 +00:00 [INF] Notification is sent on same window time.
+2025-03-08 20:58:11.893 +00:00 [INF] Saved 1 entities to in-memory store.
+2025-03-08 20:58:12.932 +00:00 [INF] Application is shutting down...

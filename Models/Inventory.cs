@@ -15,6 +15,8 @@ public class Inventory
 
     // Navigation properties
     [JsonIgnore] // Prevents infinite loops when serializing JSON
+
+    // many-to-many relationship with Character and Item. CharacterID and ItemID form a composite primary key.
     public Character? Character { get; set; }
 
     [JsonIgnore]

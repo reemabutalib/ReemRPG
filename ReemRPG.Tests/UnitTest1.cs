@@ -1,4 +1,5 @@
-﻿namespace ReemRPG.Tests;
+﻿using Xunit;
+namespace ReemRPG.Tests;
 
 public class UnitTest1
 {

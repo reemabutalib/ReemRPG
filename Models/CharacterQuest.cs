@@ -9,7 +9,7 @@ public class CharacterQuest
 
     public int CharacterId { get; set; }
     public Character? Character { get; set; }
-
+// many-to-many relationship between character and quest
     public int QuestId { get; set; }
     public Quest? Quest { get; set; }
 

@@ -1,5 +1,5 @@
 # First stage: Build the application
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 # Create the Data directory and ensure correct permissions
@@ -15,7 +15,7 @@ COPY . .
 RUN dotnet publish -c Release -o /out
 
 # Second stage: Run the application
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
 # Ensure the Data directory exists and has correct permissions

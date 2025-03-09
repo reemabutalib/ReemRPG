@@ -11,7 +11,9 @@ public class Quest
     public int? ItemRewardId { get; set; } // nullable
 
     [ForeignKey("ItemRewardId")]
+    // quest and item have a one-to-one relationship, a quest may reward one item and one item can belong to one quest
     public Item? ItemReward { get; set; }  // nullable
-
+    
+//one-to-many : quest can have multiple characterquests
     public List<CharacterQuest> CharacterQuests { get; set; } = new List<CharacterQuest>();
 }

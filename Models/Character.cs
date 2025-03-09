@@ -26,8 +26,10 @@ namespace ReemRPG.Models
         public int AttackPower { get; set; } = 10;
 
         [JsonIgnore]
+// one-to-many relationship with CharacterQuest model
         public List<CharacterQuest> CharacterQuests { get; set; } = new List<CharacterQuest>();
 
+// one-to-many relationship with Item model
         public List<Item> Items { get; set; } = new List<Item>();
     }
 }
