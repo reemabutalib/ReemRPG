@@ -73,13 +73,14 @@ builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrateg
 // Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins", builder =>
-    {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
-    });
+    options.AddPolicy("AllowFrontend",
+        builder => builder
+            .WithOrigins("http://localhost:3000")  // Allow requests from React frontend
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials());
 });
+
 
 builder.Services.AddAuthentication(options =>
 {
@@ -125,8 +126,8 @@ app.UseSerilogRequestLogging(); // Enable Serilog Request Logging
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAllOrigins");
-
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseCors("AllowFrontend");
 app.UseIpRateLimiting();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -142,6 +143,24 @@ app.UseHealthChecksUI(options =>
 {
     options.UIPath = "/health-ui"; // Health UI Dashboard
 });
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Remove("Content-Security-Policy"); // Remove any existing CSP
+
+    context.Response.Headers.Add("Content-Security-Policy",
+        "default-src 'self' https://localhost:7193; " + // Allow API requests
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " + // Allow inline scripts
+        "style-src 'self' 'unsafe-inline' 'sha256-bZoZJUhp5eMZLDxVM8qSaEadRMMD/40rZDP+7VDw2QI='; " + // Allow inline styles
+        "font-src 'self' data:; " + // Allow fonts
+        "img-src 'self' data:; " + // Allow images
+        "connect-src 'self' https://localhost:7193 http://localhost:3000; " + // Allow API requests from frontend
+        "frame-ancestors 'self';"); // Prevent iframe embedding
+
+    await next();
+});
+
+
 
 
 app.MapHealthChecksUI(); // Serve Health Check UI Dashboard
