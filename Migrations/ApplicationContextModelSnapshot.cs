@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using ReemRPG.Data;
 
 #nullable disable
 
@@ -14,7 +15,7 @@ namespace ReemRPG.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.1");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.4");
 
             modelBuilder.Entity("CharacterQuest", b =>
                 {
@@ -311,6 +312,9 @@ namespace ReemRPG.Migrations
                     b.Property<int?>("ItemRewardId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("RequiredLevel")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -336,6 +340,12 @@ namespace ReemRPG.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Experience")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Gold")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Health")
                         .HasColumnType("INTEGER");
 
@@ -350,6 +360,21 @@ namespace ReemRPG.Migrations
                     b.HasKey("CharacterId");
 
                     b.ToTable("Characters");
+                });
+
+            modelBuilder.Entity("ReemRPG.Models.UserCharacter", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CharacterId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("UserId", "CharacterId");
+
+                    b.HasIndex("CharacterId");
+
+                    b.ToTable("UserCharacters");
                 });
 
             modelBuilder.Entity("CharacterQuest", b =>
@@ -455,6 +480,17 @@ namespace ReemRPG.Migrations
                         .HasForeignKey("ItemRewardId");
 
                     b.Navigation("ItemReward");
+                });
+
+            modelBuilder.Entity("ReemRPG.Models.UserCharacter", b =>
+                {
+                    b.HasOne("ReemRPG.Models.Character", "Character")
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
                 });
 
             modelBuilder.Entity("Item", b =>

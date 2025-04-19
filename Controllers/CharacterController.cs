@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -13,19 +14,19 @@ namespace ReemRPG.Controllers
     public class CharacterController : ControllerBase
     {
         private readonly ICharacterService _characterService;
-        private readonly ILogger<CharacterController> _logger; // ILogger: used for debugging and tracking application events. Logs help identify issues, record user actions, and monitor application health.
+        private readonly ILogger<CharacterController> _logger;
 
         public CharacterController(ICharacterService characterService, ILogger<CharacterController> logger)
         {
             _characterService = characterService;
-            _logger = logger; // Assign logger
+            _logger = logger;
         }
 
         // GET: api/Character
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Character>>> GetCharacters()
         {
-            _logger.LogInformation("Fetching all characters"); // log entry created every time method is called, helps track API usage and debugging
+            _logger.LogInformation("Fetching all characters");
             var characters = await _characterService.GetAllCharactersAsync();
             return Ok(characters);
         }
@@ -68,6 +69,15 @@ namespace ReemRPG.Controllers
             return CreatedAtAction(nameof(GetCharacter), new { id = createdCharacter.CharacterId }, createdCharacter);
         }
 
+        // GET: api/Character/leaderboard
+        [HttpGet("leaderboard")]
+        public async Task<IActionResult> GetLeaderboard()
+        {
+            _logger.LogInformation("Fetching leaderboard data.");
+            var leaderboard = await _characterService.GetLeaderboardAsync();
+            return Ok(leaderboard);
+        }
+
         // DELETE: api/Character/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
@@ -81,6 +91,43 @@ namespace ReemRPG.Controllers
                 return NotFound();
             }
             return NoContent();
+        }
+
+        // POST: api/Character/select-character
+        [HttpPost("select-character")]
+        [Authorize]
+        public async Task<IActionResult> SelectCharacter([FromBody] SelectCharacterRequest request)
+        {
+            if (request == null || request.CharacterId == 0)
+            {
+                _logger.LogWarning("CharacterId is required for selecting a character.");
+                return BadRequest(new { message = "CharacterId is required." });
+            }
+
+            // Retrieve userId from the token
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || string.IsNullOrEmpty(userIdClaim.Value))
+            {
+                _logger.LogWarning("User ID is not present in the token.");
+                return Unauthorized(new { message = "User not authenticated." });
+            }
+
+            string userId = userIdClaim.Value; // Extract userId as a string
+
+            _logger.LogInformation($"User {userId} selecting character with ID: {request.CharacterId}");
+            var success = await _characterService.SelectCharacterAsync(userId, request.CharacterId);
+            if (!success)
+            {
+                _logger.LogWarning($"Character with ID {request.CharacterId} could not be selected by user {userId}");
+                return NotFound(new { message = "Character not found or cannot be selected." });
+            }
+
+            return Ok(new { message = "Character selected successfully." });
+        }
+
+        public class SelectCharacterRequest
+        {
+            public int CharacterId { get; set; }
         }
     }
 }

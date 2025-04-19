@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ReemRPG.Repositories.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ReemRPG.Data;
 
 namespace ReemRPG.Repositories
 {

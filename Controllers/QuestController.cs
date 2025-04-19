@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using ReemRPG.Models;
+using ReemRPG.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging; 
+using Microsoft.Extensions.Logging;
 
 namespace ReemRPG.Controllers
 {
@@ -92,6 +94,34 @@ namespace ReemRPG.Controllers
 
             _logger.LogInformation("Quest successfully created. ID: {QuestId}, Title: {QuestTitle}", quest.Id, quest.Title);
             return CreatedAtAction("GetQuest", new { id = quest.Id }, quest);
+        }
+
+        [HttpPost("attempt")]
+        public async Task<IActionResult> AttemptQuest([FromBody] QuestAttemptModel model)
+        {
+            var character = await _context.Characters.FindAsync(model.CharacterId);
+            var quest = await _context.Quests.FindAsync(model.QuestId);
+
+            if (character == null || quest == null)
+            {
+                return BadRequest("Invalid character or quest.");
+            }
+
+            var success = character.Level >= quest.RequiredLevel;
+            if (success)
+            {
+                character.Experience += quest.ExperienceReward;
+                character.Gold += quest.GoldReward;
+                if (quest.ItemRewardId.HasValue)
+                {
+                    var item = await _context.Items.FindAsync(quest.ItemRewardId.Value);
+                    character.Items.Add(item);
+                }
+                await _context.SaveChangesAsync();
+                return Ok(new { success = true, rewards = quest });
+            }
+
+            return Ok(new { success = false });
         }
 
         // DELETE: api/Quest/5

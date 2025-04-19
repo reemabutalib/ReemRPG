@@ -6,7 +6,7 @@ namespace ReemRPG.Models
 {
     public class Character
     {
-        public int CharacterId { get; set; } 
+        public int CharacterId { get; set; }
 
         [Required]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Name must be between 3 and 50 characters.")]
@@ -25,11 +25,14 @@ namespace ReemRPG.Models
         [Range(1, 500, ErrorMessage = "Attack Power must be between 1 and 500.")]
         public int AttackPower { get; set; } = 10;
 
+        public int Experience { get; set; } = 0;
+        public int Gold { get; set; } = 0;
+
         [JsonIgnore]
-// one-to-many relationship with CharacterQuest model
+        // one-to-many relationship with CharacterQuest model
         public List<CharacterQuest> CharacterQuests { get; set; } = new List<CharacterQuest>();
 
-// one-to-many relationship with Item model
+        // one-to-many relationship with Item model
         public List<Item> Items { get; set; } = new List<Item>();
     }
 }

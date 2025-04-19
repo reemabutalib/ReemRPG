@@ -4,6 +4,7 @@ using ReemRPG.Repositories.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ReemRPG.Data;
 
 public class CharacterRepository : ICharacterRepository
 {
@@ -63,7 +64,7 @@ public class CharacterRepository : ICharacterRepository
     }
 
     public async Task<int> SaveChangesAsync()
-{
-    return await _context.SaveChangesAsync(); 
-}
+    {
+        return await _context.SaveChangesAsync();
+    }
 }

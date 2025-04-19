@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ReemRPG.Models;
 using ReemRPG.Services.Interfaces;
+using ReemRPG.Data;
 
 public class ItemService : IItemService
 {

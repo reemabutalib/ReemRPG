@@ -1,14 +1,18 @@
+using ReemRPG.Data;
 using ReemRPG.Models;
 using ReemRPG.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 public class CharacterService : ICharacterService
 {
-    // Follows LSP: ICharacterRepository interface is used so that any repository can be used interchangeably 
+    private readonly ApplicationContext _context; // Correct context name
     private readonly ICharacterRepository _characterRepository;
 
-    public CharacterService(ICharacterRepository characterRepository)
+    public CharacterService(ICharacterRepository characterRepository, ApplicationContext context)
     {
         _characterRepository = characterRepository;
+        _context = context;
     }
 
     public async Task<IEnumerable<Character>> GetAllCharactersAsync()
@@ -37,17 +41,17 @@ public class CharacterService : ICharacterService
     }
 
     public async Task<Character> CreateCharacterAsync(Character character)
-{
-    if (character == null)
     {
-        throw new ArgumentNullException(nameof(character));
+        if (character == null)
+        {
+            throw new ArgumentNullException(nameof(character));
+        }
+
+        _characterRepository.Add(character);
+        await _characterRepository.SaveChangesAsync();
+
+        return character;
     }
-
-    _characterRepository.Add(character); // Call Add method
-    await _characterRepository.SaveChangesAsync(); // Ensure this is awaited
-
-    return character; // Return the created character
-}
 
     public Task<Character?> UpdateCharacterAsync(int id, Character character)
     {
@@ -57,5 +61,52 @@ public class CharacterService : ICharacterService
     Task<bool> ICharacterService.DeleteCharacterAsync(int id)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<List<LeaderboardEntry>> GetLeaderboardAsync()
+    {
+        var leaderboard = await _context.Characters
+            .OrderByDescending(c => c.Experience)
+            .Take(10)
+            .Select(c => new LeaderboardEntry
+            {
+                CharacterName = c.Name,
+                Class = c.Class,
+                Experience = c.Experience,
+                Level = c.Level
+            })
+            .ToListAsync();
+
+        return leaderboard;
+    }
+
+    // Implementation for selecting a character
+    public async Task<bool> SelectCharacterAsync(string userId, int characterId)
+    {
+        var character = await _context.Characters.FirstOrDefaultAsync(c => c.CharacterId == characterId);
+
+        if (character == null)
+        {
+            return false; // Character not found
+        }
+
+        var existingSelection = await _context.UserCharacters
+            .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.CharacterId == characterId);
+
+        if (existingSelection != null)
+        {
+            return true; // Character is already associated with the user
+        }
+
+        var userCharacter = new UserCharacter
+        {
+            UserId = userId,
+            CharacterId = characterId
+        };
+
+        _context.UserCharacters.Add(userCharacter);
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 }

@@ -7,6 +7,7 @@ using ReemRPG.Services.Interfaces;
 using ReemRPG.Services;
 using ReemRPG.Repositories.Interfaces;
 using ReemRPG.Repositories;
+using ReemRPG.Data;
 using ReemRPG.Middleware;
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -20,7 +21,6 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day) // Save logs to a file
-    .WriteTo.Seq("http://localhost:5341") // For structured logging with Seq (optional)
     .CreateLogger();
 
 builder.Host.UseSerilog(); // Use Serilog for logging
@@ -51,8 +51,6 @@ builder.Services.AddHealthChecks()
         HealthCheckResult.Healthy("Everything is OK!")
     );
 
-
-
 builder.Services.AddHealthChecksUI(setup =>
 {
     setup.SetEvaluationTimeInSeconds(15);
@@ -73,14 +71,14 @@ builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrateg
 // Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        builder => builder
-            .WithOrigins("http://localhost:3000")  // Allow requests from React frontend
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials());
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Replace with your frontend's origin
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Allow credentials for cookies, authorization headers, etc.
+    });
 });
-
 
 builder.Services.AddAuthentication(options =>
 {
@@ -106,6 +104,15 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+app.UseCors("AllowFrontend"); // Use CORS policy
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
+
 // Ensure Database Exists
 using (var scope = app.Services.CreateScope())
 {
@@ -124,15 +131,9 @@ using (var scope = app.Services.CreateScope())
 
 app.UseSerilogRequestLogging(); // Enable Serilog Request Logging
 
-app.UseHttpsRedirection();
-app.UseCors("AllowAllOrigins");
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseCors("AllowFrontend");
 app.UseIpRateLimiting();
-app.UseAuthentication();
-app.UseAuthorization();
 
-app.MapControllers();
 
 app.UseHealthChecks("/health", new HealthCheckOptions
 {
@@ -159,8 +160,6 @@ app.Use(async (context, next) =>
 
     await next();
 });
-
-
 
 
 app.MapHealthChecksUI(); // Serve Health Check UI Dashboard

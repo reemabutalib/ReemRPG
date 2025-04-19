@@ -2,20 +2,33 @@ using Moq;
 using ReemRPG.Services.Interfaces;
 using ReemRPG.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using ReemRPG.Repositories.Interfaces;
 using ReemRPG.Services;
+using ReemRPG.Data;
+using Microsoft.EntityFrameworkCore;
 
 public class CharacterServiceTests
 {
     private readonly Mock<ICharacterRepository> _characterRepositoryMock;
+    private readonly Mock<ApplicationContext> _contextMock;
     private readonly ICharacterService _characterService;
 
     public CharacterServiceTests()
     {
+        // Mock repository
         _characterRepositoryMock = new Mock<ICharacterRepository>();
-        _characterService = new CharacterService(_characterRepositoryMock.Object);
+
+        // Mock ApplicationContext (EF Core DbContext)
+        var options = new DbContextOptionsBuilder<ApplicationContext>()
+            .UseInMemoryDatabase(databaseName: "TestDatabase")
+            .Options;
+        _contextMock = new Mock<ApplicationContext>(options);
+
+        // Initialize CharacterService with mocks
+        _characterService = new CharacterService(_characterRepositoryMock.Object, _contextMock.Object);
     }
 
     [Fact]
@@ -23,11 +36,11 @@ public class CharacterServiceTests
     {
         // Arrange: Declare characters before using them in Setup
         var characters = new List<Character>
-    {
-        // creating mock characters 
-        new Character { CharacterId = 1, Name = "Warrior", Class = "Fighter" },
-        new Character { CharacterId = 2, Name = "Mage", Class = "Sorcerer" }
-    };
+        {
+            // Creating mock characters
+            new Character { CharacterId = 1, Name = "Warrior", Class = "Fighter" },
+            new Character { CharacterId = 2, Name = "Mage", Class = "Sorcerer" }
+        };
 
         _characterRepositoryMock.Setup(repo => repo.GetAllCharactersAsync()).ReturnsAsync(characters);
 
@@ -36,7 +49,9 @@ public class CharacterServiceTests
 
         // Assert
         var characterList = result.ToList();
+        Assert.Equal(2, characterList.Count);
         Assert.Equal("Warrior", characterList[0].Name);
+        Assert.Equal("Mage", characterList[1].Name);
     }
 
     [Fact]

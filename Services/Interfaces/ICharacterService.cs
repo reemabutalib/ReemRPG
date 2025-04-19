@@ -11,5 +11,7 @@ namespace ReemRPG.Services.Interfaces
         Task<Character> CreateCharacterAsync(Character character);
         Task<Character?> UpdateCharacterAsync(int id, Character character);
         Task<bool> DeleteCharacterAsync(int id);
+        Task<List<LeaderboardEntry>> GetLeaderboardAsync();
+        Task<bool> SelectCharacterAsync(string userId, int characterId);
     }
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ReemRPG.Models;
 using ReemRPG.Repositories.Interfaces;
+using ReemRPG.Data;
 
 namespace ReemRPG.Repositories
 {

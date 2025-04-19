@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
+using ReemRPG.Data;
 
 #nullable disable
 

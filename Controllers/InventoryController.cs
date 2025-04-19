@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging; // Added for logging
+using ReemRPG.Data; // Added for ApplicationContext
+using ReemRPG.Models; // Added for Inventory model
 
 namespace ReemRPG.Controllers
 {
