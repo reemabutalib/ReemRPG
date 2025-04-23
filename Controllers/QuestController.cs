@@ -99,29 +99,87 @@ namespace ReemRPG.Controllers
         [HttpPost("attempt")]
         public async Task<IActionResult> AttemptQuest([FromBody] QuestAttemptModel model)
         {
-            var character = await _context.Characters.FindAsync(model.CharacterId);
+            _logger.LogInformation("Quest attempt received: CharacterId={CharacterId}, QuestId={QuestId}",
+                model.CharacterId, model.QuestId);
+
+            var character = await _context.Characters
+                .Include(c => c.Items) // Ensure Items collection is loaded
+                .FirstOrDefaultAsync(c => c.Id == model.CharacterId);
+
             var quest = await _context.Quests.FindAsync(model.QuestId);
 
-            if (character == null || quest == null)
+            if (character == null)
             {
-                return BadRequest("Invalid character or quest.");
+                _logger.LogWarning("Quest attempt failed: Character not found {CharacterId}", model.CharacterId);
+                return BadRequest("Character not found");
             }
 
-            var success = character.Level >= quest.RequiredLevel;
+            if (quest == null)
+            {
+                _logger.LogWarning("Quest attempt failed: Quest not found {QuestId}", model.QuestId);
+                return BadRequest("Quest not found");
+            }
+
+            // Check if character meets level requirement
+            bool success = character.Level >= quest.RequiredLevel;
+
+            // Create response object
+            var response = new
+            {
+                Success = success,
+                ExperienceGained = success ? quest.ExperienceReward : 0,
+                GoldGained = success ? quest.GoldReward : 0,
+                LevelUp = false,
+                NewLevel = character.Level,
+                Message = success ? "Quest completed successfully!" : "You failed the quest. Try again when you're stronger."
+            };
+
             if (success)
             {
+                _logger.LogInformation("Quest {QuestId} succeeded for character {CharacterId}", model.QuestId, model.CharacterId);
+
+                // Award experience and gold
                 character.Experience += quest.ExperienceReward;
                 character.Gold += quest.GoldReward;
+
+                // Check for level up (simple implementation)
+                int oldLevel = character.Level;
+                while (character.Experience >= (character.Level * 1000)) // Simple formula for level up
+                {
+                    character.Level++;
+                }
+
+                bool leveledUp = character.Level > oldLevel;
+
+                // If there's an item reward, add it to character's inventory
                 if (quest.ItemRewardId.HasValue)
                 {
                     var item = await _context.Items.FindAsync(quest.ItemRewardId.Value);
-                    character.Items.Add(item);
+                    if (item != null)
+                    {
+                        // Ensure Items collection is initialized
+                        if (character.Items == null)
+                        {
+                            character.Items = new List<Item>();
+                        }
+                        character.Items.Add(item);
+                    }
                 }
+
                 await _context.SaveChangesAsync();
-                return Ok(new { success = true, rewards = quest });
+
+                return Ok(new
+                {
+                    Success = true,
+                    ExperienceGained = quest.ExperienceReward,
+                    GoldGained = quest.GoldReward,
+                    LevelUp = leveledUp,
+                    NewLevel = character.Level,
+                    Message = leveledUp ? "Quest completed! You gained a level!" : "Quest completed successfully!"
+                });
             }
 
-            return Ok(new { success = false });
+            return Ok(response);
         }
 
         // DELETE: api/Quest/5

@@ -13,5 +13,8 @@ namespace ReemRPG.Services.Interfaces
         Task<bool> DeleteCharacterAsync(int id);
         Task<List<LeaderboardEntry>> GetLeaderboardAsync();
         Task<bool> SelectCharacterAsync(string userId, int characterId);
+        Task<bool> SaveSelectedCharacterAsync(string userId, int characterId);
+        Task<Character> GetSelectedCharacterAsync(string userId);
+
     }
 }

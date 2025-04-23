@@ -127,11 +127,13 @@ namespace ReemRPG.Controllers
         private string GenerateJwtToken(IdentityUser user, IList<string> roles)
         {
             _logger.LogInformation("Generating JWT token for user {Email}", user.Email);
+            _logger.LogInformation("Generating JWT token for user {Id}", user.Id);
 
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
 
             foreach (var role in roles)

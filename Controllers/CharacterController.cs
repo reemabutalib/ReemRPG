@@ -104,18 +104,19 @@ namespace ReemRPG.Controllers
                 return BadRequest(new { message = "CharacterId is required." });
             }
 
-            // Retrieve userId from the token
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            // Retrieve the userId from the "jti" claim
+            var userIdClaim = User.FindFirst("jti");
             if (userIdClaim == null || string.IsNullOrEmpty(userIdClaim.Value))
             {
-                _logger.LogWarning("User ID is not present in the token.");
+                _logger.LogWarning("User ID (jti) is not present in the token.");
                 return Unauthorized(new { message = "User not authenticated." });
             }
 
             string userId = userIdClaim.Value; // Extract userId as a string
-
             _logger.LogInformation($"User {userId} selecting character with ID: {request.CharacterId}");
-            var success = await _characterService.SelectCharacterAsync(userId, request.CharacterId);
+
+            // Call the character service to handle the selection
+            var success = await _characterService.SaveSelectedCharacterAsync(userId, request.CharacterId);
             if (!success)
             {
                 _logger.LogWarning($"Character with ID {request.CharacterId} could not be selected by user {userId}");
@@ -123,6 +124,32 @@ namespace ReemRPG.Controllers
             }
 
             return Ok(new { message = "Character selected successfully." });
+        }
+
+        // GET: api/Character/get-selected-character
+        [HttpGet("get-selected-character")]
+        [Authorize]
+        public async Task<IActionResult> GetSelectedCharacter()
+        {
+            var userIdClaim = User.FindFirst("jti");
+            if (userIdClaim == null || string.IsNullOrEmpty(userIdClaim.Value))
+            {
+                _logger.LogWarning("User ID (jti) is not present in the token.");
+                return Unauthorized(new { message = "User not authenticated." });
+            }
+
+            string userId = userIdClaim.Value;
+            _logger.LogInformation($"Fetching selected character for user {userId}");
+
+            var selectedCharacter = await _characterService.GetSelectedCharacterAsync(userId);
+            if (selectedCharacter == null)
+            {
+                _logger.LogWarning($"No character selected for user {userId}");
+                return NotFound(new { message = "No character selected." });
+            }
+
+            _logger.LogInformation($"Character found: {selectedCharacter.Name}");
+            return Ok(selectedCharacter);
         }
 
         public class SelectCharacterRequest

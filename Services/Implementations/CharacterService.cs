@@ -109,4 +109,42 @@ public class CharacterService : ICharacterService
 
         return true;
     }
+
+    public async Task<bool> SaveSelectedCharacterAsync(string userId, int characterId)
+    {
+        var character = await _context.Characters.FirstOrDefaultAsync(c => c.CharacterId == characterId);
+
+        if (character == null)
+        {
+            return false; // Character not found
+        }
+
+        var existingSelection = await _context.UserCharacters
+            .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.CharacterId == characterId);
+
+        if (existingSelection != null)
+        {
+            return true; // Character is already associated with the user
+        }
+
+        var userCharacter = new UserCharacter
+        {
+            UserId = userId,
+            CharacterId = characterId
+        };
+
+        _context.UserCharacters.Add(userCharacter);
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+    public async Task<Character> GetSelectedCharacterAsync(string userId)
+    {
+        var selectedCharacter = await _context.UserCharacters
+            .Where(uc => uc.UserId == userId)
+            .Select(uc => uc.Character)
+            .FirstOrDefaultAsync();
+
+        return selectedCharacter;
+    }
 }
