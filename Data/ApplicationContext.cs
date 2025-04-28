@@ -16,6 +16,7 @@ namespace ReemRPG.Data
         public DbSet<Item> Items { get; set; }
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<CharacterQuest> CharacterQuests { get; set; }
+        public DbSet<QuestCompletion> QuestCompletions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,6 +51,12 @@ namespace ReemRPG.Data
                 .WithMany(q => q.CharacterQuests)
                 .HasForeignKey(cq => cq.QuestId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<QuestCompletion>()
+                .HasOne(qc => qc.Character)
+                .WithMany()
+                .HasForeignKey(qc => qc.CharacterId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

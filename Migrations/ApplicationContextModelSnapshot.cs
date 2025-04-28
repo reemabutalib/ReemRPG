@@ -67,9 +67,6 @@ namespace ReemRPG.Migrations
                     b.Property<int?>("AttackBonus")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("CharacterId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int?>("DefenseBonus")
                         .HasColumnType("INTEGER");
 
@@ -95,8 +92,6 @@ namespace ReemRPG.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CharacterId");
 
                     b.ToTable("Items");
                 });
@@ -293,7 +288,45 @@ namespace ReemRPG.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Quest", b =>
+            modelBuilder.Entity("ReemRPG.Models.Character", b =>
+                {
+                    b.Property<int>("CharacterId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BaseAgility")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BaseAttackPower")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BaseHealth")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BaseIntelligence")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BaseStrength")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Class")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("CharacterId");
+
+                    b.ToTable("Characters");
+                });
+
+            modelBuilder.Entity("ReemRPG.Models.Quest", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -312,6 +345,9 @@ namespace ReemRPG.Migrations
                     b.Property<int?>("ItemRewardId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("Repeatable")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("RequiredLevel")
                         .HasColumnType("INTEGER");
 
@@ -326,19 +362,45 @@ namespace ReemRPG.Migrations
                     b.ToTable("Quests");
                 });
 
-            modelBuilder.Entity("ReemRPG.Models.Character", b =>
+            modelBuilder.Entity("ReemRPG.Models.QuestCompletion", b =>
                 {
-                    b.Property<int>("CharacterId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("AttackPower")
+                    b.Property<int>("CharacterId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Class")
-                        .IsRequired()
-                        .HasMaxLength(20)
+                    b.Property<DateTime>("CompletedOn")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("ExperienceGained")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GoldGained")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("QuestId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId");
+
+                    b.ToTable("QuestCompletions");
+                });
+
+            modelBuilder.Entity("UserCharacter", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CharacterId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Experience")
                         .HasColumnType("INTEGER");
@@ -346,28 +408,7 @@ namespace ReemRPG.Migrations
                     b.Property<int>("Gold")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Health")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("Level")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("CharacterId");
-
-                    b.ToTable("Characters");
-                });
-
-            modelBuilder.Entity("ReemRPG.Models.UserCharacter", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CharacterId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("UserId", "CharacterId");
@@ -385,7 +426,7 @@ namespace ReemRPG.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Quest", "Quest")
+                    b.HasOne("ReemRPG.Models.Quest", "Quest")
                         .WithMany("CharacterQuests")
                         .HasForeignKey("QuestId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -413,13 +454,6 @@ namespace ReemRPG.Migrations
                     b.Navigation("Character");
 
                     b.Navigation("Item");
-                });
-
-            modelBuilder.Entity("Item", b =>
-                {
-                    b.HasOne("ReemRPG.Models.Character", null)
-                        .WithMany("Items")
-                        .HasForeignKey("CharacterId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -473,7 +507,7 @@ namespace ReemRPG.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Quest", b =>
+            modelBuilder.Entity("ReemRPG.Models.Quest", b =>
                 {
                     b.HasOne("Item", "ItemReward")
                         .WithMany()
@@ -482,7 +516,18 @@ namespace ReemRPG.Migrations
                     b.Navigation("ItemReward");
                 });
 
-            modelBuilder.Entity("ReemRPG.Models.UserCharacter", b =>
+            modelBuilder.Entity("ReemRPG.Models.QuestCompletion", b =>
+                {
+                    b.HasOne("ReemRPG.Models.Character", "Character")
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+                });
+
+            modelBuilder.Entity("UserCharacter", b =>
                 {
                     b.HasOne("ReemRPG.Models.Character", "Character")
                         .WithMany()
@@ -490,7 +535,15 @@ namespace ReemRPG.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Character");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Item", b =>
@@ -498,16 +551,14 @@ namespace ReemRPG.Migrations
                     b.Navigation("Inventories");
                 });
 
-            modelBuilder.Entity("Quest", b =>
+            modelBuilder.Entity("ReemRPG.Models.Character", b =>
                 {
                     b.Navigation("CharacterQuests");
                 });
 
-            modelBuilder.Entity("ReemRPG.Models.Character", b =>
+            modelBuilder.Entity("ReemRPG.Models.Quest", b =>
                 {
                     b.Navigation("CharacterQuests");
-
-                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

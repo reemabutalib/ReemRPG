@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using ReemRPG.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -49,71 +50,131 @@ namespace ReemRPG.Controllers
             // creates a new user in database: hashes and salts password, saves user and returns result-
             var result = await _userManager.CreateAsync(user, model.Password);
 
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                _logger.LogInformation("User {Email} registered successfully.", model.Email);
-
-                // Generate an email verification token
-                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-
-                // Create the verification link
-                var verificationLink = Url.Action("VerifyEmail", "Account", new { userId = user.Id, token = token }, Request.Scheme);
-
-                // Send the verification email
-                var emailSubject = "Email Verification";
-                var emailBody = $"Please verify your email by clicking the following link: {verificationLink}";
-
-                await _emailService.SendEmailAsync(user.Email, emailSubject, emailBody);
-                _logger.LogInformation("Verification email sent to {Email}.", user.Email);
-
-                return Ok("User registered successfully. An email verification link has been sent.");
+                _logger.LogWarning("Registration failed for {Email}: {Errors}",
+                    model.Email,
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+                return BadRequest(result.Errors);
             }
 
-            _logger.LogWarning("Registration failed for {Email}. Errors: {Errors}", model.Email, result.Errors);
-            return BadRequest(result.Errors);
+            // Generate email verification token
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            _logger.LogInformation("Generated email verification token: {Token}", token);
+
+            // Create verification link that points to your backend API
+            var encodedUserId = Uri.EscapeDataString(user.Id);
+            var encodedToken = Uri.EscapeDataString(token);
+            var callbackUrl = $"{_configuration["ApiBaseUrl"]}/api/account/verify-email?userId={encodedUserId}&code={encodedToken}";
+
+            _logger.LogInformation("Generated verification URL: {Url}", callbackUrl);
+
+            // Send verification email
+            await _emailService.SendEmailAsync(
+                model.Email,
+                "Confirm your email",
+                $"Please confirm your account by <a href='{callbackUrl}'>clicking here</a>.");
+
+            _logger.LogInformation("User {Email} registered successfully. Verification email sent.", model.Email);
+            return Ok(new { message = "Registration successful. Please verify your email." });
         }
 
-        [HttpGet("verify-email")]
-        public async Task<IActionResult> VerifyEmail(string userId, string token)
-        {
-            _logger.LogInformation("Attempting email verification for userId: {UserId}", userId);
 
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromQuery] string userId, [FromQuery] string code)
+        {
+            _logger.LogInformation("Email verification attempt for userId: {UserId}", userId);
+
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(code))
+            {
+                _logger.LogWarning("Email verification failed: userId or code is null or empty");
+                return Redirect($"{_configuration["ClientApp:BaseUrl"]}/verification-failed");
+            }
+
+            var decodedCode = Uri.UnescapeDataString(code); // Decode the token
+
+            _logger.LogInformation("Decoded verification code: {Code}", decodedCode);
+
+            // Find the user by ID
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                _logger.LogWarning("Email verification failed. User {UserId} not found.", userId);
-                return NotFound("User not found.");
+                _logger.LogWarning("Email verification failed: User {UserId} not found", userId);
+                return Redirect($"{_configuration["ClientApp:BaseUrl"]}/verification-failed");
             }
 
-            var result = await _userManager.ConfirmEmailAsync(user, token);
+            var result = await _userManager.ConfirmEmailAsync(user, decodedCode); // Use the decoded token
             if (result.Succeeded)
             {
-                _logger.LogInformation("Email verification successful for {UserId}.", userId);
-                return Ok("Email verification successful.");
+                _logger.LogInformation("Email verification successful for user {UserId}", userId);
+                return Redirect($"{_configuration["ClientApp:BaseUrl"]}/verification-success");
             }
 
-            _logger.LogWarning("Email verification failed for {UserId}.", userId);
-            return BadRequest("Email verification failed.");
+            _logger.LogWarning("Email verification failed for user {UserId}: {Errors}",
+                userId,
+                string.Join(", ", result.Errors.Select(e => e.Description)));
+            return Redirect($"{_configuration["ClientApp:BaseUrl"]}/verification-failed");
         }
+
+        // In your Login endpoint:
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(AuthModel model)
         {
-            _logger.LogInformation("User attempting login: {Email}", model.Email);
+            var user = await _userManager.FindByEmailAsync(model.Email);
 
-            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, isPersistent: false, lockoutOnFailure: false);
-            if (result.Succeeded)
+            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
-                var roles = await _userManager.GetRolesAsync(user);
-                var token = GenerateJwtToken(user, roles);
+                // Check if email is verified
+                if (!user.EmailConfirmed)
+                {
+                    _logger.LogWarning("Login attempt with unconfirmed email: {Email}", model.Email);
+                    return BadRequest(new
+                    {
+                        message = "Please verify your email before logging in.",
+                        requiresVerification = true
+                    });
+                }
 
-                _logger.LogInformation("User {Email} logged in successfully.", model.Email);
-                return Ok(new { Token = token });
+                // Generate token (now correctly awaiting the async method)
+                var token = await GenerateJwtToken(user);
+
+                _logger.LogInformation("User logged in: {Email}", model.Email);
+                return Ok(new { token = token, email = user.Email });
             }
 
-            _logger.LogWarning("Invalid login attempt for {Email}.", model.Email);
-            return Unauthorized("Invalid login attempt.");
+            _logger.LogWarning("Login failed: {Email}", model.Email);
+            return Unauthorized(new { message = "Invalid login attempt." });
+        }
+
+        [HttpPost("resend-verification")]
+        public async Task<IActionResult> ResendVerification([FromBody] AuthModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                // Don't reveal that the user doesn't exist
+                return Ok(new { message = "If your account exists, a verification email has been sent." });
+            }
+
+            if (user.EmailConfirmed)
+            {
+                return Ok(new { message = "Your email is already verified. Please log in." });
+            }
+
+            // Generate and encode verification token
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var encodedUserId = Uri.EscapeDataString(user.Id);
+            var encodedToken = Uri.EscapeDataString(token);
+            var callbackUrl = $"{_configuration["ApiBaseUrl"]}/api/account/verify-email?userId={encodedUserId}&code={encodedToken}";
+
+            await _emailService.SendEmailAsync(
+                model.Email,
+                "Confirm your email",
+                $"Please confirm your account by <a href='{callbackUrl}'>clicking here</a>.");
+
+            return Ok(new { message = "Verification email sent." });
         }
 
         [HttpPost("logout")]
@@ -124,18 +185,45 @@ namespace ReemRPG.Controllers
             return Ok("Logged out");
         }
 
-        private string GenerateJwtToken(IdentityUser user, IList<string> roles)
+        [HttpGet("me")]
+        [Authorize] // This ensures only authenticated users can access this endpoint
+        public async Task<IActionResult> GetCurrentUser()
         {
-            _logger.LogInformation("Generating JWT token for user {Email}", user.Email);
-            _logger.LogInformation("Generating JWT token for user {Id}", user.Id);
-
-            var claims = new List<Claim>
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
-            };
+                _logger.LogWarning("User ID not found in token claims");
+                return Unauthorized();
+            }
 
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found for ID: {UserId}", userId);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Returning user info for {Email}", user.Email);
+            return Ok(new
+            {
+                id = user.Id,
+                email = user.Email,
+                userName = user.UserName,
+                emailConfirmed = user.EmailConfirmed
+            });
+        }
+
+        private async Task<string> GenerateJwtToken(IdentityUser user)
+        {
+            // Add user ID to claims
+            var claims = new List<Claim>
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(ClaimTypes.NameIdentifier, user.Id)
+    };
+
+            var roles = await _userManager.GetRolesAsync(user);
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
@@ -153,7 +241,6 @@ namespace ReemRPG.Controllers
                 signingCredentials: creds
             );
 
-            _logger.LogInformation("JWT token generated for {Email}", user.Email);
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

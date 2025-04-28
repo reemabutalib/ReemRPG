@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ReemRPG.Services.Interfaces;
+using ReemRPG.Services.Implementations;
 using ReemRPG.Services;
 using ReemRPG.Repositories.Interfaces;
 using ReemRPG.Repositories;
@@ -43,6 +44,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ICharacterService, CharacterService>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
+builder.Services.AddLogging();
 
 // Configure Health Checks
 builder.Services.AddHealthChecks()
@@ -150,13 +152,13 @@ app.Use(async (context, next) =>
     context.Response.Headers.Remove("Content-Security-Policy"); // Remove any existing CSP
 
     context.Response.Headers.Add("Content-Security-Policy",
-        "default-src 'self' https://localhost:7193; " + // Allow API requests
+        "default-src 'self' http://localhost:5233; " + // Allow API requests
         "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " + // Allow inline scripts
         "style-src 'self' 'unsafe-inline' 'sha256-bZoZJUhp5eMZLDxVM8qSaEadRMMD/40rZDP+7VDw2QI='; " + // Allow inline styles
         "font-src 'self' data:; " + // Allow fonts
         "img-src 'self' data:; " + // Allow images
-        "connect-src 'self' https://localhost:7193 http://localhost:3000; " + // Allow API requests from frontend
-        "frame-ancestors 'self';"); // Prevent iframe embedding
+        "connect-src 'self' http://localhost:5233 http://localhost:5173; " + // Allow API requests from frontend
+        "frame-ancestors 'self';"); // Prevent iframe embedding                 
 
     await next();
 });

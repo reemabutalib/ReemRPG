@@ -1,21 +1,39 @@
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Http.Features;
 
-public class Quest
+namespace ReemRPG.Models
 {
-    public int Id { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public int ExperienceReward { get; set; }
-    public int GoldReward { get; set; }
-    public int? ItemRewardId { get; set; } // nullable
+    public class Quest
+    {
+        public Quest()
+        {
+            // Initialize collections
+            CharacterQuests = new List<CharacterQuest>();
+        }
 
-    [ForeignKey("ItemRewardId")]
-    // quest and item have a one-to-one relationship, a quest may reward one item and one item can belong to one quest
-    public Item? ItemReward { get; set; }  // nullable
+        [Key]
+        public int Id { get; set; }
 
-    //one-to-many : quest can have multiple characterquests
+        [Required]
+        public string Title { get; set; }
 
-    public int RequiredLevel { get; set; }
-    public List<CharacterQuest> CharacterQuests { get; set; } = new List<CharacterQuest>();
+        [Required]
+        public string Description { get; set; }
+
+        public int RequiredLevel { get; set; } = 1;
+
+        public int ExperienceReward { get; set; }
+
+        public int GoldReward { get; set; }
+
+        public int? ItemRewardId { get; set; }
+
+        public Item ItemReward { get; set; }
+
+        public bool Repeatable { get; set; } = false;
+
+        // Add this navigation property for the many-to-many relationship
+        public virtual ICollection<CharacterQuest> CharacterQuests { get; set; }
+    }
 }
