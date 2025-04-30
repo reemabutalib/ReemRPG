@@ -153,38 +153,87 @@ namespace ReemRPG.Services.Implementations
         // Select a character for a user with proper progression data
         public async Task<bool> SelectCharacterAsync(string userId, int characterId)
         {
-            var character = await _context.Characters.FirstOrDefaultAsync(c => c.CharacterId == characterId);
-
-            if (character == null)
+            // Validate inputs
+            if (string.IsNullOrWhiteSpace(userId))
             {
-                _logger.LogWarning("Character selection failed: Character {CharacterId} not found", characterId);
+                _logger.LogWarning("User ID cannot be null or empty");
                 return false;
             }
 
-            var existingSelection = await _context.UserCharacters
-                .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.CharacterId == characterId);
-
-            if (existingSelection != null)
+            if (characterId <= 0)
             {
-                _logger.LogInformation("Character {CharacterId} already associated with user {UserId}", characterId, userId);
-                return true; // Character is already associated with the user
+                _logger.LogWarning("Invalid character ID: {CharacterId}", characterId);
+                return false;
             }
 
-            // Create new user character with initial progression values
-            var userCharacter = new UserCharacter
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                UserId = userId,
-                CharacterId = characterId,
-                Level = 1,
-                Experience = 0,
-                Gold = 0
-            };
+                // Verify user exists
+                var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+                if (!userExists)
+                {
+                    _logger.LogWarning("User {UserId} not found in database", userId);
+                    return false;
+                }
 
-            _context.UserCharacters.Add(userCharacter);
-            await _context.SaveChangesAsync();
+                // Verify character exists
+                var character = await _context.Characters.FindAsync(characterId);
+                if (character == null)
+                {
+                    _logger.LogWarning("Character {CharacterId} not found in database", characterId);
+                    return false;
+                }
 
-            _logger.LogInformation("Associated character {CharacterId} with user {UserId}", characterId, userId);
-            return true;
+                // Check if association already exists
+                var existingAssociation = await _context.UserCharacters
+                    .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.CharacterId == characterId);
+
+                if (existingAssociation != null)
+                {
+                    _logger.LogInformation("Character {CharacterId} already associated with user {UserId}",
+                        characterId, userId);
+                    await transaction.CommitAsync();
+                    return true;
+                }
+
+                // Create new association
+                var userCharacter = new UserCharacter
+                {
+                    UserId = userId,
+                    CharacterId = characterId,
+                    Level = 1,
+                    Experience = 0,
+                    Gold = 0,
+                };
+
+                // Mark any previously selected character as not selected
+                var previousSelection = await _context.UserCharacters
+                    .Where(uc => uc.UserId == userId)
+                    .ToListAsync();
+
+                _context.UserCharacters.Add(userCharacter);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Successfully associated character {CharacterId} with user {UserId}",
+                    characterId, userId);
+                return true;
+            }
+            catch (DbUpdateException dbEx)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(dbEx, "Database error while associating character {CharacterId} with user {UserId}",
+                    characterId, userId);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Unexpected error while associating character {CharacterId} with user {UserId}",
+                    characterId, userId);
+                return false;
+            }
         }
 
         // Save selected character is now the same as SelectCharacter

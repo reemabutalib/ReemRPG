@@ -6,3 +6,4 @@ namespace ReemRPG.Models
         public int QuestId { get; set; }
     }
 }
+

@@ -408,6 +408,9 @@ namespace ReemRPG.Migrations
                     b.Property<int>("Gold")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsSelected")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Level")
                         .HasColumnType("INTEGER");
 

@@ -22,14 +22,24 @@ namespace ReemRPG.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<UserCharacter>()
-           .HasKey(uc => new { uc.UserId, uc.CharacterId }); // Composite primary key
+            // Configure Usercharacter entity
+            modelBuilder.Entity<UserCharacter>(entity =>
+            {
+                // Set composite primary key
+                entity.HasKey(e => new { e.UserId, e.CharacterId });
 
-            modelBuilder.Entity<UserCharacter>()
-                .HasOne(uc => uc.Character)
-                .WithMany()
-                .HasForeignKey(uc => uc.CharacterId);
+                // Configure Character relationship
+                entity.HasOne(e => e.Character)
+                    .WithMany()
+                    .HasForeignKey(e => e.CharacterId)
+                    .OnDelete(DeleteBehavior.Restrict);  // Prevent cascade delete
 
+                // Configure IdentityUser relationship
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);   // Allow cascade delete for users
+            });
 
             // Define composite key for Inventory (CharacterId + ItemId)
             modelBuilder.Entity<Inventory>()

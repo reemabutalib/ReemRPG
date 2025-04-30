@@ -102,6 +102,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
 
 var app = builder.Build();

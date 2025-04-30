@@ -9,6 +9,7 @@ public class UserCharacter
     public int Experience { get; set; } = 0;
     public int Level { get; set; } = 1;
     public int Gold { get; set; } = 0;
+    public bool IsSelected { get; set; } = false;
 
     // Navigation properties
     public Character Character { get; set; }
