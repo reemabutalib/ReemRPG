@@ -25,35 +25,57 @@ namespace ReemRPG.Controllers
             _logger = logger;
         }
 
-        // Helper method to get user ID
+        // Add this method to your QuestController class
         private string GetUserId()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || string.IsNullOrEmpty(userIdClaim.Value))
+            var claimValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(claimValue))
             {
                 return null;
             }
-            return userIdClaim.Value;
+            return claimValue;
         }
 
         // Helper to get/create user character
+        // Update the helper to get/create user character with better error handling
         private async Task<UserCharacter> GetOrCreateUserCharacterAsync(string userId, int characterId)
         {
-            var userCharacter = await _context.UserCharacters
-                .Include(uc => uc.Character)
-                .FirstOrDefaultAsync(uc =>
-                    uc.UserId == userId &&
-                    uc.CharacterId == characterId);
-
-            if (userCharacter == null)
+            try
             {
-                var baseCharacter = await _context.Characters
-                    .FindAsync(characterId);
+                // First check if the user character already exists
+                var userCharacter = await _context.UserCharacters
+                    .Include(uc => uc.Character)
+                    .FirstOrDefaultAsync(uc =>
+                        uc.UserId == userId &&
+                        uc.CharacterId == characterId);
 
+                if (userCharacter != null)
+                {
+                    _logger.LogInformation("GetOrCreateUserCharacter: Found existing character {CharacterId} for user {UserId}",
+                        characterId, userId);
+                    return userCharacter;
+                }
+
+                // Verify the character exists in the Characters table
+                var baseCharacter = await _context.Characters.FindAsync(characterId);
                 if (baseCharacter == null)
                 {
+                    _logger.LogWarning("GetOrCreateUserCharacter: Character {CharacterId} not found in Characters table",
+                        characterId);
                     return null;
                 }
+
+                // Verify the user exists in the AspNetUsers table
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    _logger.LogWarning("GetOrCreateUserCharacter: User {UserId} not found in AspNetUsers table", userId);
+                    return null;
+                }
+
+                // Create a new UserCharacter entity
+                _logger.LogInformation("GetOrCreateUserCharacter: Creating new UserCharacter for {UserId} and {CharacterId}",
+                    userId, characterId);
 
                 userCharacter = new UserCharacter
                 {
@@ -62,14 +84,44 @@ namespace ReemRPG.Controllers
                     Level = 1,
                     Experience = 0,
                     Gold = 0,
-                    Character = baseCharacter
+                    IsSelected = false
                 };
 
+                // Add it to the context
                 _context.UserCharacters.Add(userCharacter);
-                await _context.SaveChangesAsync();
-            }
 
-            return userCharacter;
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("GetOrCreateUserCharacter: Successfully created UserCharacter");
+
+                    // Load the character navigation property
+                    await _context.Entry(userCharacter)
+                        .Reference(uc => uc.Character)
+                        .LoadAsync();
+
+                    return userCharacter;
+                }
+                catch (DbUpdateException dbEx)
+                {
+                    _logger.LogError(dbEx, "GetOrCreateUserCharacter: Database error when creating UserCharacter. UserId: {UserId}, CharacterId: {CharacterId}",
+                        userId, characterId);
+
+                    // Log more detailed info about the keys
+                    var characterExists = await _context.Characters.AnyAsync(c => c.CharacterId == characterId);
+                    var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+
+                    _logger.LogError("Character {CharacterId} exists: {CharacterExists}, User {UserId} exists: {UserExists}",
+                        characterId, characterExists, userId, userExists);
+
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetOrCreateUserCharacterAsync");
+                throw;
+            }
         }
 
         // GET: api/Quest - Get all available quests
@@ -141,71 +193,178 @@ namespace ReemRPG.Controllers
                     return BadRequest(new { message = "Invalid request" });
                 }
 
-                var userId = GetUserId();
-                if (userId == null)
+                _logger.LogInformation("AttemptQuest: Attempting quest {QuestId} with character {CharacterId}",
+                    model.QuestId, model.CharacterId);
+
+                // Get the current user ID, checking both Id and Email
+                var claimValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(claimValue))
                 {
+                    _logger.LogWarning("AttemptQuest: No user identifier claim found");
                     return Unauthorized(new { message = "User not authenticated" });
                 }
+
+                // Look up user by either ID or email
+                var user = await _context.Users.FirstOrDefaultAsync(u =>
+                    u.Id == claimValue || u.Email == claimValue);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("AttemptQuest: User with identifier {Identifier} not found in database", claimValue);
+                    return NotFound(new { message = "User not found in database" });
+                }
+
+                // Use the actual user ID going forward
+                var userId = user.Id;
+                _logger.LogInformation("AttemptQuest: Found user with identifier {Identifier}, using ID: {UserId}",
+                    claimValue, userId);
 
                 // Get the quest
                 var quest = await _context.Quests.FindAsync(model.QuestId);
                 if (quest == null)
                 {
+                    _logger.LogWarning("AttemptQuest: Quest {QuestId} not found", model.QuestId);
                     return NotFound(new { message = "Quest not found" });
                 }
 
-                // Get or create the user character
-                var userCharacter = await GetOrCreateUserCharacterAsync(userId, model.CharacterId);
-                if (userCharacter == null)
+                _logger.LogInformation("AttemptQuest: Found quest {QuestId}: {QuestTitle}",
+                    quest.Id, quest.Title);
+
+                // Verify character exists in the Characters table first
+                var character = await _context.Characters.FindAsync(model.CharacterId);
+                if (character == null)
                 {
+                    _logger.LogWarning("AttemptQuest: Character {CharacterId} not found in Characters table", model.CharacterId);
                     return NotFound(new { message = "Character not found" });
                 }
 
-                // Record completion
-                var questCompletion = new QuestCompletion
-                {
-                    QuestId = model.QuestId,
-                    CharacterId = model.CharacterId,
-                    UserId = userId,
-                    CompletedOn = DateTime.UtcNow,
-                    ExperienceGained = quest.ExperienceReward,
-                    GoldGained = quest.GoldReward
-                };
+                // Get the user character - don't try to create it here
+                var userCharacter = await _context.UserCharacters
+                    .Include(uc => uc.Character)
+                    .FirstOrDefaultAsync(uc =>
+                        uc.UserId == userId &&
+                        uc.CharacterId == model.CharacterId);
 
-                // Update character progression
-                userCharacter.Experience += quest.ExperienceReward;
-                userCharacter.Gold += quest.GoldReward;
-
-                // Check for level up
-                int oldLevel = userCharacter.Level;
-                while (userCharacter.Experience >= (userCharacter.Level * 1000))
+                if (userCharacter == null)
                 {
-                    userCharacter.Level++;
+                    _logger.LogWarning("AttemptQuest: Character {CharacterId} not assigned to user {UserId}",
+                        model.CharacterId, userId);
+                    return NotFound(new { message = "This character doesn't belong to you. Please select this character first." });
                 }
 
-                bool leveledUp = userCharacter.Level > oldLevel;
+                _logger.LogInformation("AttemptQuest: Found character {CharacterId}: {CharacterName}, Level {Level}",
+                    userCharacter.CharacterId, userCharacter.Character.Name, userCharacter.Level);
 
-                // Save changes
-                _context.QuestCompletions.Add(questCompletion);
-                await _context.SaveChangesAsync();
-
-                // Return result
-                return Ok(new
+                // Check if character meets level requirement
+                if (userCharacter.Level < quest.RequiredLevel)
                 {
-                    success = true,
-                    experienceGained = quest.ExperienceReward,
-                    goldGained = quest.GoldReward,
-                    levelUp = leveledUp,
-                    newLevel = userCharacter.Level,
-                    message = leveledUp ?
-                        $"Quest completed! You leveled up to level {userCharacter.Level}!" :
-                        "Quest completed successfully!"
-                });
+                    _logger.LogInformation("AttemptQuest: Character level {CharLevel} is less than required level {RequiredLevel}",
+                        userCharacter.Level, quest.RequiredLevel);
+                    return BadRequest(new
+                    {
+                        message = $"Your character needs to be level {quest.RequiredLevel} to attempt this quest."
+                    });
+                }
+
+                // Check if quest was already completed
+                var alreadyCompleted = await _context.QuestCompletions
+                    .AnyAsync(qc =>
+                        qc.UserId == userId &&
+                        qc.CharacterId == model.CharacterId &&
+                        qc.QuestId == model.QuestId);
+
+                if (alreadyCompleted)
+                {
+                    _logger.LogInformation("AttemptQuest: Quest {QuestId} already completed by character {CharacterId}",
+                        model.QuestId, model.CharacterId);
+                    // Optionally return success with a different message
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "You've already completed this quest!"
+                    });
+                }
+
+                // Start a database transaction
+                using var transaction = await _context.Database.BeginTransactionAsync();
+
+                try
+                {
+                    // Record completion
+                    var questCompletion = new QuestCompletion
+                    {
+                        QuestId = model.QuestId,
+                        CharacterId = model.CharacterId,
+                        UserId = userId,
+                        CompletedOn = DateTime.UtcNow,
+                        ExperienceGained = quest.ExperienceReward,
+                        GoldGained = quest.GoldReward
+                    };
+
+                    // Update character progression
+                    int oldLevel = userCharacter.Level;
+                    userCharacter.Experience += quest.ExperienceReward;
+                    userCharacter.Gold += quest.GoldReward;
+
+                    // Check for level up
+                    while (userCharacter.Experience >= (userCharacter.Level * 1000))
+                    {
+                        userCharacter.Level++;
+                        _logger.LogInformation("AttemptQuest: Character {CharacterId} leveled up to {Level}",
+                            model.CharacterId, userCharacter.Level);
+                    }
+
+                    bool leveledUp = userCharacter.Level > oldLevel;
+
+                    // Add the quest completion
+                    _context.QuestCompletions.Add(questCompletion);
+
+                    // Save changes
+                    await _context.SaveChangesAsync();
+
+                    // Commit the transaction
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation("AttemptQuest: Successfully completed quest {QuestId} with character {CharacterId}",
+                        model.QuestId, model.CharacterId);
+
+                    // Return result
+                    return Ok(new
+                    {
+                        success = true,
+                        experienceGained = quest.ExperienceReward,
+                        goldGained = quest.GoldReward,
+                        levelUp = leveledUp,
+                        newLevel = userCharacter.Level,
+                        currentExp = userCharacter.Experience,
+                        expToNextLevel = (userCharacter.Level * 1000) - userCharacter.Experience,
+                        message = leveledUp ?
+                            $"Quest completed! You leveled up to level {userCharacter.Level}!" :
+                            "Quest completed successfully!"
+                    });
+                }
+                catch (Exception innerEx)
+                {
+                    // Roll back the transaction on error
+                    await transaction.RollbackAsync();
+
+                    _logger.LogError(innerEx, "AttemptQuest: Database error during quest attempt. Quest: {QuestId}, Character: {CharacterId}",
+                        model.QuestId, model.CharacterId);
+
+                    throw; // Re-throw to be caught by outer try-catch
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error attempting quest");
-                return StatusCode(500, new { message = "Error attempting quest" });
+                _logger.LogError(ex, "AttemptQuest: Error processing quest attempt. Message: {Message}, Stack: {StackTrace}",
+                    ex.Message, ex.StackTrace);
+
+                return StatusCode(500, new
+                {
+                    message = "Error attempting quest",
+                    details = ex.Message,
+                    innerError = ex.InnerException?.Message
+                });
             }
         }
 
@@ -216,17 +375,37 @@ namespace ReemRPG.Controllers
         {
             try
             {
-                var userId = GetUserId();
-                if (userId == null)
+                // Get the current user ID, checking both Id and Email
+                var claimValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(claimValue))
                 {
+                    _logger.LogWarning("GetCharacterCompletedQuests: No user identifier claim found");
                     return Unauthorized(new { message = "User not authenticated" });
                 }
 
+                // Look up user by either ID or email
+                var user = await _context.Users.FirstOrDefaultAsync(u =>
+                    u.Id == claimValue || u.Email == claimValue);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("GetCharacterCompletedQuests: User with identifier {Identifier} not found in database", claimValue);
+                    return NotFound(new { message = "User not found in database" });
+                }
+
+                // Use the actual user ID going forward
+                var userId = user.Id;
+                _logger.LogInformation("GetCharacterCompletedQuests: Found user with identifier {Identifier}, using ID: {UserId}",
+                    claimValue, userId);
+
+                // Now look up the user character with the correct userId
                 var userCharacter = await _context.UserCharacters
                     .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.CharacterId == characterId);
 
                 if (userCharacter == null)
                 {
+                    _logger.LogWarning("GetCharacterCompletedQuests: Character {CharacterId} not found for user {UserId}",
+                        characterId, userId);
                     return NotFound(new { message = "Character not found or doesn't belong to you" });
                 }
 
@@ -262,18 +441,38 @@ namespace ReemRPG.Controllers
         {
             try
             {
-                var userId = GetUserId();
-                if (userId == null)
+                // Get the current user ID, checking both Id and Email
+                var claimValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(claimValue))
                 {
+                    _logger.LogWarning("GetCharacterProgress: No user identifier claim found");
                     return Unauthorized(new { message = "User not authenticated" });
                 }
 
+                // Look up user by either ID or email
+                var user = await _context.Users.FirstOrDefaultAsync(u =>
+                    u.Id == claimValue || u.Email == claimValue);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("GetCharacterProgress: User with identifier {Identifier} not found in database", claimValue);
+                    return NotFound(new { message = "User not found in database" });
+                }
+
+                // Use the actual user ID going forward
+                var userId = user.Id;
+                _logger.LogInformation("GetCharacterProgress: Found user with identifier {Identifier}, using ID: {UserId}",
+                    claimValue, userId);
+
+                // Now look up the user character with the correct userId
                 var userCharacter = await _context.UserCharacters
                     .Include(uc => uc.Character)
                     .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.CharacterId == characterId);
 
                 if (userCharacter == null)
                 {
+                    _logger.LogWarning("GetCharacterProgress: Character {CharacterId} not found for user {UserId}",
+                        characterId, userId);
                     return NotFound(new { message = "Character not found or doesn't belong to you" });
                 }
 

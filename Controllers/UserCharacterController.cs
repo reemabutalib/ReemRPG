@@ -11,10 +11,6 @@ using ReemRPG.Models;
 
 namespace ReemRPG.Controllers
 {
-    public class SelectCharacterRequest
-    {
-        public int CharacterId { get; set; }
-    }
     [Route("api/[controller]")]
     [ApiController]
     public class UserCharacterController : ControllerBase // Change to ControllerBase for API
@@ -31,7 +27,12 @@ namespace ReemRPG.Controllers
         // Get current user ID
         private string GetUserId()
         {
-            return User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Debugging log to see what's returned
+            _logger.LogInformation("GetUserId method returned: {UserId}", userId);
+
+            return userId;
         }
 
         // GET: api/UserCharacter - Get all user characters (admin only)
@@ -62,81 +63,110 @@ namespace ReemRPG.Controllers
         {
             try
             {
-                var userId = GetUserId();
-                if (userId == null)
+                _logger.LogInformation("GetSelectedCharacter endpoint called");
+
+                var claimValue = GetUserId(); // This returns the email based on your logs
+                if (claimValue == null)
                 {
+                    _logger.LogWarning("GetSelectedCharacter: User not authenticated");
                     return Unauthorized(new { message = "User not authenticated" });
                 }
 
-                // Try to get the selected character first
-                var userCharacter = await _context.UserCharacters
-                    .Include(u => u.Character)
-                    .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.IsSelected);
+                // Look up user by either ID or email (just like in SelectCharacter)
+                var user = await _context.Users.FirstOrDefaultAsync(u =>
+                    u.Id == claimValue || u.Email == claimValue);
 
-                // If no selected character, get the first one if it exists
-                if (userCharacter == null)
+                if (user == null)
                 {
-                    userCharacter = await _context.UserCharacters
+                    _logger.LogWarning("GetSelectedCharacter: User with identifier {Identifier} not found in database", claimValue);
+                    return NotFound(new { message = "User not found in database" });
+                }
+
+                // Use the actual user ID going forward
+                var userId = user.Id;
+                _logger.LogInformation("GetSelectedCharacter: Found user with identifier {Identifier}, using ID: {UserId}",
+                    claimValue, userId);
+
+                // Try to get the selected character with explicit error handling
+                try
+                {
+                    // Try to get the selected character first
+                    var userCharacter = await _context.UserCharacters
                         .Include(u => u.Character)
-                        .FirstOrDefaultAsync(uc => uc.UserId == userId);
+                        .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.IsSelected);
 
-                    // If found, mark it as selected
-                    if (userCharacter != null)
+                    _logger.LogInformation("GetSelectedCharacter: Initial query for selected character returned: {Result}",
+                        userCharacter != null ? "found" : "not found");
+
+                    // If no selected character, get the first one if it exists
+                    if (userCharacter == null)
                     {
-                        userCharacter.IsSelected = true;
-                        await _context.SaveChangesAsync();
+                        userCharacter = await _context.UserCharacters
+                            .Include(u => u.Character)
+                            .FirstOrDefaultAsync(uc => uc.UserId == userId);
+
+                        _logger.LogInformation("GetSelectedCharacter: Fallback query for any character returned: {Result}",
+                            userCharacter != null ? "found" : "not found");
+
+                        // If found, mark it as selected
+                        if (userCharacter != null)
+                        {
+                            userCharacter.IsSelected = true;
+                            await _context.SaveChangesAsync();
+                            _logger.LogInformation("GetSelectedCharacter: Marked character {CharacterId} as selected",
+                                userCharacter.CharacterId);
+                        }
                     }
-                }
 
-                if (userCharacter == null)
-                {
-                    return NotFound(new { message = "No character found for this user" });
-                }
+                    if (userCharacter == null)
+                    {
+                        _logger.LogInformation("GetSelectedCharacter: No character found for user {UserId}", userId);
+                        return NotFound(new { message = "No character found for this user" });
+                    }
 
-                // Return character data
-                return Ok(new
+                    // Return character data
+                    var result = new
+                    {
+                        characterId = userCharacter.CharacterId,
+                        name = userCharacter.Character.Name,
+                        class_ = userCharacter.Character.Class,
+                        level = userCharacter.Level,
+                        experience = userCharacter.Experience,
+                        gold = userCharacter.Gold,
+                        imageUrl = userCharacter.Character.ImageUrl ?? ""
+                    };
+
+                    _logger.LogInformation("GetSelectedCharacter: Successfully retrieved character {CharacterId} for user {UserId}",
+                        userCharacter.CharacterId, userId);
+
+                    return Ok(result);
+                }
+                catch (InvalidOperationException invEx)
                 {
-                    characterId = userCharacter.CharacterId,
-                    name = userCharacter.Character.Name,
-                    class_ = userCharacter.Character.Class,
-                    level = userCharacter.Level,
-                    experience = userCharacter.Experience,
-                    gold = userCharacter.Gold,
-                    imageUrl = userCharacter.Character.ImageUrl
-                });
+                    // This can happen if there's a DB schema mismatch (e.g., missing Id column)
+                    _logger.LogError(invEx, "GetSelectedCharacter: Invalid operation in database query");
+
+                    return StatusCode(500, new
+                    {
+                        message = "Database schema error",
+                        error = invEx.Message
+                    });
+                }
+                catch (Exception dbEx)
+                {
+                    _logger.LogError(dbEx, "GetSelectedCharacter: Database error when querying for selected character");
+
+                    return StatusCode(500, new
+                    {
+                        message = "Database error",
+                        error = dbEx.Message
+                    });
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting selected character");
-                return StatusCode(500, new { message = "Error retrieving character" });
-            }
-        }
-
-        // Add this method inside the UserCharacterController class, at the end before the closing }
-
-        // Add this endpoint to check database connectivity
-        [HttpGet("test-db")]
-        public async Task<IActionResult> TestDatabase()
-        {
-            try
-            {
-                var characterCount = await _context.Characters.CountAsync();
-                var userCount = await _context.Users.CountAsync();
-
-                return Ok(new
-                {
-                    message = "Database connection successful",
-                    characterCount = characterCount,
-                    userCount = userCount
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    message = "Database error",
-                    error = ex.Message
-                });
+                _logger.LogError(ex, "GetSelectedCharacter: Unhandled exception");
+                return StatusCode(500, new { message = "Error retrieving character", error = ex.Message });
             }
         }
 
@@ -152,19 +182,25 @@ namespace ReemRPG.Controllers
                     return BadRequest(new { message = "Invalid character ID" });
                 }
 
-                var userId = GetUserId();
-                if (userId == null)
+                var claimValue = GetUserId(); // This returns the email based on your logs
+                if (claimValue == null)
                 {
                     return Unauthorized(new { message = "User not authenticated" });
                 }
 
-                // Verify the user exists in the database
-                var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
-                if (!userExists)
+                // Look up user by either ID or email
+                var user = await _context.Users.FirstOrDefaultAsync(u =>
+                    u.Id == claimValue || u.Email == claimValue);
+
+                if (user == null)
                 {
-                    _logger.LogWarning("User ID {UserId} not found in database", userId);
+                    _logger.LogWarning("User with identifier {Identifier} not found in database", claimValue);
                     return NotFound(new { message = "User not found in database" });
                 }
+
+                // Use the actual user ID going forward
+                var userId = user.Id;
+                _logger.LogInformation("Found user with email {Email}, using ID: {UserId}", claimValue, userId);
 
                 // Find the character with explicit logging
                 var character = await _context.Characters.FindAsync(request.CharacterId);
