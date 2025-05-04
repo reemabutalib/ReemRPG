@@ -1,17 +1,37 @@
-using ReemRPG.Models;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
-public class UserCharacter
+
+namespace ReemRPG.Models
 {
-    public string UserId { get; set; }
-    public int CharacterId { get; set; }
+    public class UserCharacter
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
 
-    // User-specific progress data
-    public int Experience { get; set; } = 0;
-    public int Level { get; set; } = 1;
-    public int Gold { get; set; } = 0;
-    public bool IsSelected { get; set; } = false;
+        [Required]
+        public string UserId { get; set; }
 
-    // Navigation properties
-    public Character Character { get; set; }
-    public IdentityUser User { get; set; }
+        [Required]
+        public int CharacterId { get; set; }
+
+        public int Level { get; set; } = 1;
+
+        public int Experience { get; set; } = 0;
+
+        public int Gold { get; set; } = 0;
+
+        public bool IsSelected { get; set; } = false;
+
+        // Navigation properties
+        [ForeignKey("CharacterId")]
+        public virtual Character Character { get; set; }
+
+        // Add User navigation property if your views expect it
+        [ForeignKey("UserId")]
+        public virtual IdentityUser User { get; set; }
+
+    }
 }

@@ -2,23 +2,23 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging; 
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ReemRPG.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ReemRPG.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
     public class RolesController : ControllerBase
     {
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly ILogger<RolesController> _logger; 
+        private readonly ILogger<RolesController> _logger;
 
         public RolesController(RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager, ILogger<RolesController> logger)
         {
@@ -34,6 +34,32 @@ namespace ReemRPG.Controllers
             _logger.LogInformation("Fetching all roles.");
             var roles = _roleManager.Roles.ToList();
             return Ok(roles);
+        }
+
+        // GET: api/Roles/users
+        [HttpGet("users")]
+        [Authorize(Roles = "Admin")]  // Only admins can access this endpoint
+        public async Task<IActionResult> GetUsers()
+        {
+            _logger.LogInformation("Admin requested list of all users");
+
+            var users = await _userManager.Users.ToListAsync();
+            var userList = new List<object>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                userList.Add(new
+                {
+                    id = user.Id,
+                    email = user.Email,
+                    userName = user.UserName,
+                    emailConfirmed = user.EmailConfirmed,
+                    roles = roles
+                });
+            }
+
+            return Ok(userList);
         }
 
         // GET: api/Roles/{roleId}

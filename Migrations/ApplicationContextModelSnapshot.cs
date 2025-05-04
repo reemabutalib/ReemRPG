@@ -394,7 +394,7 @@ namespace ReemRPG.Migrations
                     b.ToTable("QuestCompletions");
                 });
 
-            modelBuilder.Entity("UserCharacter", b =>
+            modelBuilder.Entity("ReemRPG.Models.UserCharacter", b =>
                 {
                     b.Property<string>("UserId")
                         .HasColumnType("TEXT");
@@ -406,6 +406,10 @@ namespace ReemRPG.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Gold")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsSelected")
@@ -530,7 +534,7 @@ namespace ReemRPG.Migrations
                     b.Navigation("Character");
                 });
 
-            modelBuilder.Entity("UserCharacter", b =>
+            modelBuilder.Entity("ReemRPG.Models.UserCharacter", b =>
                 {
                     b.HasOne("ReemRPG.Models.Character", "Character")
                         .WithMany()

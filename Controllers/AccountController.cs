@@ -213,6 +213,57 @@ namespace ReemRPG.Controllers
             });
         }
 
+        // GET: api/account/is-admin
+        [HttpGet("is-admin")]
+        [Authorize]
+        public async Task<IActionResult> CheckAdminStatus()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+            return Ok(new { isAdmin });
+        }
+
+        // POST: api/account/refresh
+        [HttpPost("refresh")]
+        [Authorize] // Requires an existing (possibly expired) token
+        public async Task<IActionResult> RefreshToken()
+        {
+            try
+            {
+                // Get the user ID from the current token
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.LogWarning("Token refresh failed: User ID not found in token");
+                    return Unauthorized(new { message = "Invalid token" });
+                }
+
+                // Find the user
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    _logger.LogWarning("Token refresh failed: User {UserId} not found", userId);
+                    return Unauthorized(new { message = "User not found" });
+                }
+
+                // Generate new token
+                var newToken = await GenerateJwtToken(user);
+
+                _logger.LogInformation("Token refreshed successfully for user {Email}", user.Email);
+                return Ok(new { token = newToken });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error refreshing token");
+                return StatusCode(500, new { message = "An error occurred while refreshing the token" });
+            }
+        }
+
         private async Task<string> GenerateJwtToken(IdentityUser user)
         {
             // Add user ID to claims
